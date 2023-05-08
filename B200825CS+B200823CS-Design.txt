@@ -1,0 +1,160 @@
+﻿DESIGN FOR B200825CS+B200823CS
+(PSEUDO_CODE)
+
+
+N is 1024
+Port number is 9999
+
+
+
+
+
+
+Server (Sender) -
+
+
+
+
+struct packet
+{
+    int type;
+    int seqno;
+    char arr[N];
+    int checksum;
+}
+
+
+type_sender(type)
+{
+        seqno=1
+        while(1)
+                Sleep 50ms
+                Increment counter
+                
+                if(type==1 and counter is multiple of 2) //i.e every 100 ms
+                        Send_packet of type 1 and seqno
+                        Increment seqno
+                
+                if(type==2 and counter is multiple of 3) //i.e every 150 ms
+                        Send_packet of type 2 and seqno
+                        Increment seqno
+
+
+
+
+
+
+}
+
+
+
+
+
+
+Main () 
+{
+        Initialize a socker my_socket
+        Bind socket to port
+        
+        Create thread (t1,type_sender,1) //sends packets of type 1
+        Create thread (t1,type_sender,2) //sends packets of type 2
+        Join t1 and t2 (wait till their execution is complete)
+        Close socket
+}
+        
+
+
+
+
+
+
+
+
+Receiver-
+Global variable struct packet p1 //using s1 for synchronization
+Global variable recieved_count_1,recieved_count_2=0 //using s2 for synchronization
+
+check_for_errors(p)
+{
+        if(p.checksum==payload checksum)
+                No error
+        Else
+                error
+
+
+}
+
+
+
+
+checker_thread()
+{
+        while(1)
+                wait(s1) //lock
+                Recieve_packet into p1
+		check_for_errors(p1)
+		post(s1) //unlock
+        
+
+
+}
+
+
+type1_proccesor_thread()
+{
+        while(1)
+                wait(s1) //lock
+                if(p1 is new packet and p1.type==1)
+                        Print_packet
+			post(s1) //unlock
+			Increment recieved_count_1 
+		else
+		post(s1) //lock       
+
+
+}
+
+
+type2_proccesor_thread()
+{
+        while(1)
+                wait(s1) //lock
+                if(p1 is new packet and p1.type==2)
+                        Print_packet
+			post(s1) //unlock
+			Increment recieved_count_2 
+		else
+		post(s1) //lock       
+
+
+}
+
+
+counter_thread()
+{
+
+
+        while(1)
+                Sleep 300ms
+                Print received_count_1 and recieved_count_2
+
+
+
+
+}
+
+
+
+
+Main()
+{
+	Initialize semaphores s1,s2,s3
+	Initialize socket and bind it to port
+	Create thread (t1,checker_thread)
+	Create thread (t2,type1_proccesor_thread)
+	Create thread (t3,type2_proccesor_thread)
+	Create thread (t4,counter_thread)
+
+
+	Join t1,t2,t3,t4 //wait for them to complete
+}
